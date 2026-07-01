@@ -10,11 +10,24 @@ import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.hanging.HangingBreakByEntityEvent
 import org.bukkit.event.hanging.HangingBreakEvent
+import org.bukkit.event.hanging.HangingPlaceEvent
 import org.bukkit.event.player.PlayerInteractAtEntityEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerQuitEvent
 
 class FrameEventListener(private val plugin: GakubuchiLockerPlugin) : Listener {
+
+    // =====================================================
+    // 額縁設置時: 自動ロック
+    // =====================================================
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    fun onHangingPlace(event: HangingPlaceEvent) {
+        val frame = event.entity as? ItemFrame ?: return
+        val player = event.player ?: return
+
+        plugin.db.lockFrame(frame, player.uniqueId)
+        player.sendMessage("§a[Gakubuchi] §f額縁を自動でロックしました。")
+    }
 
     // =====================================================
     // 左クリック: ロック / アンロック操作 & ロック済み保護
@@ -58,8 +71,8 @@ class FrameEventListener(private val plugin: GakubuchiLockerPlugin) : Listener {
             }
 
             null -> {
-                // 通常時: ロック済みなら破壊・ダメージをキャンセル
-                if (plugin.db.isLocked(frame.uniqueId)) {
+                // 通常時: ロック済みで、かつオーナー以外なら保護
+                if (plugin.db.isLocked(frame.uniqueId) && plugin.db.getOwner(frame.uniqueId) != player.uniqueId) {
                     event.isCancelled = true
                     player.sendMessage("§c[Gakubuchi] §fこの額縁はロックされており破壊できません。")
                 }
@@ -74,7 +87,7 @@ class FrameEventListener(private val plugin: GakubuchiLockerPlugin) : Listener {
     fun onPlayerInteractEntity(event: PlayerInteractEntityEvent) {
         val frame = event.rightClicked as? ItemFrame ?: return
 
-        if (plugin.db.isLocked(frame.uniqueId)) {
+        if (plugin.db.isLocked(frame.uniqueId) && plugin.db.getOwner(frame.uniqueId) != event.player.uniqueId) {
             event.isCancelled = true
             event.player.sendMessage("§c[Gakubuchi] §fこの額縁はロックされています。")
         }
@@ -85,7 +98,7 @@ class FrameEventListener(private val plugin: GakubuchiLockerPlugin) : Listener {
     fun onPlayerInteractAtEntity(event: PlayerInteractAtEntityEvent) {
         val frame = event.rightClicked as? ItemFrame ?: return
 
-        if (plugin.db.isLocked(frame.uniqueId)) {
+        if (plugin.db.isLocked(frame.uniqueId) && plugin.db.getOwner(frame.uniqueId) != event.player.uniqueId) {
             event.isCancelled = true
         }
     }
@@ -96,13 +109,18 @@ class FrameEventListener(private val plugin: GakubuchiLockerPlugin) : Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun onHangingBreakByEntity(event: HangingBreakByEntityEvent) {
         val frame = event.entity as? ItemFrame ?: return
+        if (!plugin.db.isLocked(frame.uniqueId)) return
 
-        if (plugin.db.isLocked(frame.uniqueId)) {
-            event.isCancelled = true
-            val remover = event.remover
-            if (remover is Player) {
-                remover.sendMessage("§c[Gakubuchi] §fこの額縁はロックされており破壊できません。")
-            }
+        val remover = event.remover
+        if (remover is Player && plugin.db.getOwner(frame.uniqueId) == remover.uniqueId) {
+            // オーナー本人が破壊 → DBからロック情報を削除して通過
+            plugin.db.unlockFrame(frame.uniqueId)
+            return
+        }
+
+        event.isCancelled = true
+        if (remover is Player) {
+            remover.sendMessage("§c[Gakubuchi] §fこの額縁はロックされており破壊できません。")
         }
     }
 
