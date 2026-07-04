@@ -11,10 +11,12 @@ commands:
     description: 額縁のLockモードを切り替える
     usage: /gakubuchilock <on|off>
     permission: gakubuchilocker.use
+    aliases: [glock]
   gakubuchiunlock:
     description: 額縁のUnlockモードを切り替える
     usage: /gakubuchiunlock <on|off>
     permission: gakubuchilocker.use
+    aliases: [gunlock]
 
 permissions:
   gakubuchilocker.use:
