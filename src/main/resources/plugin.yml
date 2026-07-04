@@ -17,6 +17,11 @@ commands:
     usage: /gakubuchiunlock <on|off>
     permission: gakubuchilocker.use
     aliases: [gunlock]
+  gakubuchifinder:
+    description: 周囲の透明化されたロック済み額縁を赤いパーティクルで表示する
+    usage: /gakubuchifinder [radius]
+    permission: gakubuchilocker.use
+    aliases: [gfinder]
 
 permissions:
   gakubuchilocker.use:
