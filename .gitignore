@@ -1,6 +1,5 @@
 .gradle/
 .vscode/
-.claude/
 build/
 bin/
 *.jar
