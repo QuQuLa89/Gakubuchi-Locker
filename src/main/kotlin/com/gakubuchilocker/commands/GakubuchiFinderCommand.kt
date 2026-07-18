@@ -12,16 +12,23 @@ import org.bukkit.entity.Player
 import org.bukkit.scheduler.BukkitRunnable
 
 // 透明化(シアーズで見た目を消した)額縁を赤いパーティクルで可視化して発見しやすくするコマンド
-class GakubuchiFinderCommand(private val plugin: GakubuchiLockerPlugin) : CommandExecutor, TabCompleter {
-
+class GakubuchiFinderCommand(
+    private val plugin: GakubuchiLockerPlugin,
+) : CommandExecutor,
+    TabCompleter {
     companion object {
         private const val DEFAULT_RADIUS = 32.0
         private const val MAX_RADIUS = 100.0
         private const val DURATION_TICKS = 200L // パーティクル表示時間 (10秒)
-        private const val INTERVAL_TICKS = 10L  // 再表示間隔 (0.5秒)
+        private const val INTERVAL_TICKS = 10L // 再表示間隔 (0.5秒)
     }
 
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
+    override fun onCommand(
+        sender: CommandSender,
+        command: Command,
+        label: String,
+        args: Array<out String>,
+    ): Boolean {
         if (sender !is Player) {
             sender.sendMessage("§cこのコマンドはプレイヤーのみ使用できます。")
             return true
@@ -34,11 +41,13 @@ class GakubuchiFinderCommand(private val plugin: GakubuchiLockerPlugin) : Comman
 
         val radius = args.getOrNull(0)?.toDoubleOrNull()?.coerceIn(1.0, MAX_RADIUS) ?: DEFAULT_RADIUS
 
-        val frames = sender.getNearbyEntities(radius, radius, radius)
-            .filterIsInstance<ItemFrame>()
-            .filter { !it.isVisible }
-            .filter { plugin.db.isLocked(it.uniqueId) }
-            .filter { sender.isOp || plugin.db.getOwner(it.uniqueId) == sender.uniqueId }
+        val frames =
+            sender
+                .getNearbyEntities(radius, radius, radius)
+                .filterIsInstance<ItemFrame>()
+                .filter { !it.isVisible }
+                .filter { plugin.db.isLocked(it.uniqueId) }
+                .filter { sender.isOp || plugin.db.getOwner(it.uniqueId) == sender.uniqueId }
 
         if (frames.isEmpty()) {
             sender.sendMessage("§e[Gakubuchi] §f半径${radius.toInt()}ブロック以内に透明額縁は見つかりませんでした。")
@@ -63,7 +72,12 @@ class GakubuchiFinderCommand(private val plugin: GakubuchiLockerPlugin) : Comman
                         sender.spawnParticle(
                             Particle.DUST,
                             frame.location.clone().add(0.5, 0.5, 0.5),
-                            10, 0.1, 0.1, 0.1, 0.0, dustOptions
+                            10,
+                            0.1,
+                            0.1,
+                            0.1,
+                            0.0,
+                            dustOptions,
                         )
                     }
                 }
@@ -79,7 +93,7 @@ class GakubuchiFinderCommand(private val plugin: GakubuchiLockerPlugin) : Comman
         sender: CommandSender,
         command: Command,
         alias: String,
-        args: Array<out String>
+        args: Array<out String>,
     ): List<String> {
         if (args.size == 1) {
             return listOf("16", "32", "64").filter { it.startsWith(args[0]) }

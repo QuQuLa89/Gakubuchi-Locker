@@ -15,8 +15,9 @@ import org.bukkit.event.player.PlayerInteractAtEntityEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerQuitEvent
 
-class FrameEventListener(private val plugin: GakubuchiLockerPlugin) : Listener {
-
+class FrameEventListener(
+    private val plugin: GakubuchiLockerPlugin,
+) : Listener {
     // =====================================================
     // 額縁設置時: 自動ロック
     // =====================================================

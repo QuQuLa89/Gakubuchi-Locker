@@ -8,7 +8,6 @@ import org.bukkit.plugin.java.JavaPlugin
 import java.util.UUID
 
 class GakubuchiLockerPlugin : JavaPlugin() {
-
     lateinit var db: DatabaseManager
 
     // プレイヤーのモード管理 (UUID → "lock" | "unlock")
