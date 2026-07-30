@@ -50,9 +50,15 @@ PaperMC サーバー向けの額縁ロックプラグインです。額縁（Ite
 - 額縁を設置すると**自動でロックされ**、設置者がオーナーになります
 - `/gakubuchilock` コマンドを使わずに即座に保護されます
 
+### FAWE / WorldEdit コピペ額縁の自動保護（v1.3.0〜）
+
+- FAWE や WorldEdit のエンティティコピー機能（`//copy -e` / `//paste -e`）で複製・配置された額縁の自動保護に対応しています
+- PersistentDataContainer (PDC) および `EntitySpawnEvent`（1-tick遅延同期＆操作時フォールバックを含む）により、コピペ時にも自動的にロックが登録されます
+
 ### データ永続化
 
 - ロック情報は **SQLite** に保存し、サーバー再起動後も引き継がれます
+- データベース処理の WAL モード有効化および `ConcurrentHashMap` の導入により、スレッドセーフ性とパフォーマンスが向上しています
 - 起動時に全データをメモリキャッシュへ展開するため、保護判定は **O(1)** で処理されます
 
 ---
@@ -153,6 +159,12 @@ CREATE TABLE IF NOT EXISTS locked_frames (
 ---
 
 ## 変更履歴
+
+### v1.3.0
+
+- **FAWE / WorldEdit コピペ額縁の自動保護に対応**: `//copy -e` や `//paste -e` で複製された額縁の自動保護に対応しました
+- **PDCおよびEntitySpawnEventによる自動ロック登録**: PersistentDataContainer (PDC) と `EntitySpawnEvent`（1-tick遅延同期および操作時のフォールバック処理を含む）により、スポーン時の自動ロック登録に対応しました
+- **パフォーマンスとスレッドセーフ性の向上**: データベース処理での WAL モード有効化および `ConcurrentHashMap` の導入により、動作の高速化とスレッドセーフ性を向上させました
 
 ### v1.2.0
 
