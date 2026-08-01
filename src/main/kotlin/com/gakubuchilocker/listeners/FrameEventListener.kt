@@ -208,4 +208,3 @@ class FrameEventListener(
         plugin.toumeiPlayers.remove(event.player.uniqueId)
     }
 }
-
