@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ktlint
+        name: ktlint format
+        entry: java -jar C:/Users/nanam/.local/bin/ktlint -F "src/**/*.kt"
+        language: system
+        pass_filenames: false
+        types_or: [kotlin]
