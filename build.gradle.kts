@@ -21,6 +21,10 @@ java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
+kotlin {
+    jvmToolchain(21)
+}
+
 tasks {
     processResources {
         val props = mapOf("version" to project.version)
@@ -35,8 +39,5 @@ tasks {
     }
     build {
         dependsOn(shadowJar)
-    }
-    compileKotlin {
-        kotlinOptions.jvmTarget = "21"
     }
 }
