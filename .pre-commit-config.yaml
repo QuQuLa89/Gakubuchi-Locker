@@ -1,0 +1,8 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ktlint-format
+        name: Kotlinコードを整形します
+        entry: cmd /c java -jar "%USERPROFILE%/.local/bin/ktlint" -F
+        language: system
+        types_or: [kotlin]
