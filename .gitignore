@@ -9,3 +9,16 @@ bin/
 *.iml
 out/
 .claude/
+
+# Local environment and secrets
+.env
+.env.local
+.env.*
+
+# Runtime data, SQLite databases and logs
+*.db
+*.db-wal
+*.db-shm
+*.log
+run/
+logs/
