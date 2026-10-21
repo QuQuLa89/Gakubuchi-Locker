@@ -9,16 +9,26 @@ import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
 import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.event.server.PluginDisableEvent
 import org.bukkit.scheduler.BukkitRunnable
+import org.bukkit.scheduler.BukkitTask
+import java.util.UUID
 
 // 透明化(シアーズで見た目を消した)額縁を赤いパーティクルで可視化して発見しやすくするコマンド
 class GakubuchiFinderCommand(
     private val plugin: GakubuchiLockerPlugin,
 ) : CommandExecutor,
-    TabCompleter {
+    TabCompleter,
+    Listener {
+    private val activeTasks = mutableMapOf<UUID, BukkitTask>()
+
     companion object {
         private const val DEFAULT_RADIUS = 32.0
         private const val MAX_RADIUS = 100.0
+        private const val MAX_FRAMES = 50
         private const val DURATION_TICKS = 200L // パーティクル表示時間 (10秒)
         private const val INTERVAL_TICKS = 10L // 再表示間隔 (0.5秒)
     }
@@ -40,14 +50,19 @@ class GakubuchiFinderCommand(
         }
 
         val radius = args.getOrNull(0)?.toDoubleOrNull()?.coerceIn(1.0, MAX_RADIUS) ?: DEFAULT_RADIUS
+        val playerId = sender.uniqueId
+        activeTasks.remove(playerId)?.cancel()
 
         val frames =
             sender
                 .getNearbyEntities(radius, radius, radius)
+                .asSequence()
                 .filterIsInstance<ItemFrame>()
                 .filter { !it.isVisible }
                 .filter { plugin.db.isLocked(it.uniqueId) }
                 .filter { sender.isOp || plugin.db.getOwner(it.uniqueId) == sender.uniqueId }
+                .take(MAX_FRAMES)
+                .toList()
 
         if (frames.isEmpty()) {
             sender.sendMessage("§e[Gakubuchi] §f半径${radius.toInt()}ブロック以内に透明額縁は見つかりませんでした。")
@@ -58,35 +73,50 @@ class GakubuchiFinderCommand(
 
         val dustOptions = Particle.DustOptions(Color.RED, 1.5f)
 
-        object : BukkitRunnable() {
-            var elapsedTicks = 0L
+        val task =
+            object : BukkitRunnable() {
+                var elapsedTicks = 0L
 
-            override fun run() {
-                if (elapsedTicks >= DURATION_TICKS || !sender.isOnline) {
-                    cancel()
-                    return
-                }
-
-                frames.forEach { frame ->
-                    if (frame.isValid) {
-                        sender.spawnParticle(
-                            Particle.DUST,
-                            frame.location.clone().add(0.5, 0.5, 0.5),
-                            10,
-                            0.1,
-                            0.1,
-                            0.1,
-                            0.0,
-                            dustOptions,
-                        )
+                override fun run() {
+                    if (elapsedTicks >= DURATION_TICKS || !sender.isOnline) {
+                        activeTasks.remove(playerId)
+                        cancel()
+                        return
                     }
-                }
 
-                elapsedTicks += INTERVAL_TICKS
-            }
-        }.runTaskTimer(plugin, 0L, INTERVAL_TICKS)
+                    frames.forEach { frame ->
+                        if (frame.isValid) {
+                            sender.spawnParticle(
+                                Particle.DUST,
+                                frame.location.clone().add(0.5, 0.5, 0.5),
+                                10,
+                                0.1,
+                                0.1,
+                                0.1,
+                                0.0,
+                                dustOptions,
+                            )
+                        }
+                    }
+
+                    elapsedTicks += INTERVAL_TICKS
+                }
+            }.runTaskTimer(plugin, 0L, INTERVAL_TICKS)
+        activeTasks[playerId] = task
 
         return true
+    }
+
+    @EventHandler
+    fun onPlayerQuit(event: PlayerQuitEvent) {
+        activeTasks.remove(event.player.uniqueId)?.cancel()
+    }
+
+    @EventHandler
+    fun onPluginDisable(event: PluginDisableEvent) {
+        if (event.plugin != plugin) return
+        activeTasks.values.forEach { it.cancel() }
+        activeTasks.clear()
     }
 
     override fun onTabComplete(

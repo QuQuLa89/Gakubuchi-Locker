@@ -33,6 +33,7 @@ class GakubuchiLockerPlugin : JavaPlugin() {
         }
 
         val finderHandler = GakubuchiFinderCommand(this)
+        server.pluginManager.registerEvents(finderHandler, this)
         getCommand("gakubuchifinder")?.let { cmd ->
             cmd.setExecutor(finderHandler)
             cmd.tabCompleter = finderHandler

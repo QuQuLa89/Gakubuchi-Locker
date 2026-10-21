@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.gakubuchilocker"
-version = "1.3.0"
+version = "1.3.1"
 
 repositories {
     mavenCentral()
@@ -15,6 +15,10 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
     implementation(kotlin("stdlib"))
     implementation("org.xerial:sqlite-jdbc:3.53.4.0")
+    testImplementation(kotlin("test-junit5"))
+    testImplementation("org.mockito:mockito-core:5.20.0")
+    testImplementation("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 java {
@@ -26,6 +30,10 @@ kotlin {
 }
 
 tasks {
+    test {
+        useJUnitPlatform()
+    }
+
     processResources {
         val props = mapOf("version" to project.version)
         inputs.properties(props)
