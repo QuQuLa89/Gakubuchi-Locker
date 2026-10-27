@@ -15,6 +15,7 @@ import org.bukkit.event.hanging.HangingPlaceEvent
 import org.bukkit.event.player.PlayerInteractAtEntityEvent
 import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.persistence.PersistentDataType
 import java.util.UUID
 
@@ -97,6 +98,7 @@ class FrameEventListener(
     // =====================================================
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     fun onPlayerInteractEntity(event: PlayerInteractEntityEvent) {
+        if (event.hand != EquipmentSlot.HAND) return
         val frame = event.rightClicked as? ItemFrame ?: return
         checkAndLockFromPdc(frame)
         val player = event.player
@@ -124,7 +126,7 @@ class FrameEventListener(
                 }
 
                 val owner = plugin.db.getOwner(frame.uniqueId)
-                if (owner != player.uniqueId) {
+                if (owner != player.uniqueId && !player.isOp) {
                     player.sendMessage("§c[Gakubuchi] §fこの額縁は別のプレイヤーがロックしています。解除できません。")
                     return
                 }
@@ -134,7 +136,7 @@ class FrameEventListener(
             }
 
             null -> {
-                if (plugin.db.isLocked(frame.uniqueId) && plugin.db.getOwner(frame.uniqueId) != player.uniqueId) {
+                if (plugin.db.isLocked(frame.uniqueId) && plugin.db.getOwner(frame.uniqueId) != player.uniqueId && !player.isOp) {
                     event.isCancelled = true
                     player.sendMessage("§c[Gakubuchi] §fこの額縁はロックされています。")
                 }
@@ -155,7 +157,7 @@ class FrameEventListener(
             return
         }
 
-        if (plugin.db.isLocked(frame.uniqueId) && plugin.db.getOwner(frame.uniqueId) != player.uniqueId) {
+        if (plugin.db.isLocked(frame.uniqueId) && plugin.db.getOwner(frame.uniqueId) != player.uniqueId && !player.isOp) {
             event.isCancelled = true
         }
     }

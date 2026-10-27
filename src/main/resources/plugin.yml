@@ -4,7 +4,7 @@ main: com.gakubuchilocker.GakubuchiLockerPlugin
 api-version: "1.21"
 description: 額縁をロックして保護するプラグイン
 authors:
-  - GakubuchiLocker
+  - QuQuLa89
 
 commands:
   gakubuchilock:
