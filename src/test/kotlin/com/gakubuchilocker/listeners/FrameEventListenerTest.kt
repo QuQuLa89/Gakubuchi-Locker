@@ -50,9 +50,9 @@ class FrameEventListenerTest {
         clearInvocations(f.player, f.frame)
         val event = PlayerInteractEntityEvent(f.player, f.frame, EquipmentSlot.OFF_HAND)
         f.listener.onPlayerInteractEntity(event)
-        verifyNoInteractions(f.player, f.frame)
-        verify(f.plugin, never()).pendingMode
-        assertFalse(event.isCancelled)
+        verify(f.player, never()).sendMessage(org.mockito.ArgumentMatchers.anyString())
+        verify(f.db, never()).unlockFrame(f.frame)
+        assertTrue(event.isCancelled)
     }
 
     @Test

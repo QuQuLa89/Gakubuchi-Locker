@@ -98,11 +98,19 @@ class FrameEventListener(
     // =====================================================
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
     fun onPlayerInteractEntity(event: PlayerInteractEntityEvent) {
-        if (event.hand != EquipmentSlot.HAND) return
         val frame = event.rightClicked as? ItemFrame ?: return
         checkAndLockFromPdc(frame)
         val player = event.player
         val mode = plugin.pendingMode[player.uniqueId]
+
+        if (event.hand != EquipmentSlot.HAND) {
+            if (mode != null ||
+                (plugin.db.isLocked(frame.uniqueId) && plugin.db.getOwner(frame.uniqueId) != player.uniqueId && !player.isOp)
+            ) {
+                event.isCancelled = true
+            }
+            return
+        }
 
         when (mode) {
             GakubuchiLockerPlugin.PendingMode.LOCK -> {
@@ -173,14 +181,21 @@ class FrameEventListener(
 
         val remover = event.remover
         if (remover is Player && (plugin.db.getOwner(frame.uniqueId) == remover.uniqueId || remover.isOp)) {
-            // オーナー本人、または OP が破壊 → DBからロック情報を削除して通過
-            plugin.db.unlockFrame(frame)
+            // オーナー本人、または OP が破壊 → 破壊確定後にMONITORでロック解除するためここでは通過
             return
         }
 
         event.isCancelled = true
         if (remover is Player) {
             remover.sendMessage("§c[Gakubuchi] §fこの額縁はロックされており破壊できません。")
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    fun onHangingBreakMonitor(event: HangingBreakEvent) {
+        val frame = event.entity as? ItemFrame ?: return
+        if (plugin.db.isLocked(frame.uniqueId)) {
+            plugin.db.unlockFrame(frame)
         }
     }
 
