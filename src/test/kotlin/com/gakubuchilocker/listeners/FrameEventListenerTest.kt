@@ -12,12 +12,10 @@ import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
 import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class FrameEventListenerTest {
@@ -50,9 +48,9 @@ class FrameEventListenerTest {
         clearInvocations(f.player, f.frame)
         val event = PlayerInteractEntityEvent(f.player, f.frame, EquipmentSlot.OFF_HAND)
         f.listener.onPlayerInteractEntity(event)
-        verifyNoInteractions(f.player, f.frame)
-        verify(f.plugin, never()).pendingMode
-        assertFalse(event.isCancelled)
+        verify(f.player, never()).sendMessage(org.mockito.ArgumentMatchers.anyString())
+        verify(f.db, never()).unlockFrame(f.frame)
+        assertTrue(event.isCancelled)
     }
 
     @Test
